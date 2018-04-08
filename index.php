@@ -1,8 +1,7 @@
 <?php
 require __DIR__ . '/vendor/autoload.php';
+include ('config-server.php');
 
-define("BS", "vendor/twbs/bootstrap/dist/");
-define("JQ", "vendor/components/jquery/");
 ?>
 <!DOCTYPE html>
 <html lang="it">
@@ -32,8 +31,11 @@ define("JQ", "vendor/components/jquery/");
         <link rel="stylesheet" href="<?=BS?>css/bootstrap.min.css">
     </head>
     <body>
-
+        <div id="main">
+        Loading...
+        </div>
         <script src="<?=JQ?>jquery.min.js"></script>
         <script src="<?=BS?>js/bootstrap.bundle.min.js"></script>
+        <script src="js/main.js"></script>
     </body>
 </html>

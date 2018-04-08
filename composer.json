@@ -3,7 +3,6 @@
     "description": "A simple web app you can use to review and rate employee in a company",
     "type": "project",
     "require": {
-        "nette/database": "^2.4",
         "twbs/bootstrap": "^4.0",
         "components/jquery": "^3.3",
         "slim/slim": "^3.9"
