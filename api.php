@@ -9,7 +9,7 @@ $api->get('/hello/{name}', function ($request, $response, $args) {
 });
 
 $api->get("/reviews/{employee}", function ($request, $response, $args) {
-    $db = new PDO("sqlite:database/db"); 
+    $db = new PDO("sqlite:database/db");
     $res = $db->query("select * from reviews where employee = ".$args['employee']);
     $array = [];
     while ($row = $res->fetch(\PDO::FETCH_ASSOC)){
@@ -19,7 +19,7 @@ $api->get("/reviews/{employee}", function ($request, $response, $args) {
 });
 
 $api->get("/employees", function ($request, $response, $args) {
-    $db = new PDO("sqlite:database/db"); 
+    $db = new PDO("sqlite:database/db");
     $res = $db->query("select * from employees");
     $array = [];
     while ($row = $res->fetch(\PDO::FETCH_ASSOC)){
@@ -29,7 +29,7 @@ $api->get("/employees", function ($request, $response, $args) {
 });
 
 $api->get("/users", function ($request, $response, $args) {
-    $db = new PDO("sqlite:database/db"); 
+    $db = new PDO("sqlite:database/db");
     $res = $db->query("select * from users");
     $array = [];
     while ($row = $res->fetch(\PDO::FETCH_ASSOC)){
