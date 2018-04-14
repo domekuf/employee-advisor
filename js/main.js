@@ -80,11 +80,4 @@ $(document).ready(function() {
     eA.PageLoad("login");
 });
 */
-$(document).ready(function() {
-    $(".fa-star").mouseenter(function(e) {
-        console.log("in");
-    }).mouseleave(function(e) {
-        console.log("out");
-    });
-});
 

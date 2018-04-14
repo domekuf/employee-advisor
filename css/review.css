@@ -1,0 +1,6 @@
+.fa-star {
+}
+#star-rate {
+    cursor: pointer;
+    display: inline-block;
+}
