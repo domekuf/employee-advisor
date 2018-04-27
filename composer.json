@@ -6,7 +6,8 @@
         "twbs/bootstrap": "^4.0",
         "components/jquery": "^3.3",
         "slim/slim": "^3.9",
-        "components/font-awesome": "^5.0"
+        "components/font-awesome": "^5.0",
+        "slim/php-view": "^2.2"
     },
     "authors": [
         {
