@@ -8,4 +8,14 @@
     <button type="submit" class="btn btn-primary">Login</button>
 </form>
 
-<?php echo $this->fetch("/foot.php", []);?>
+<?php echo $this->fetch("/foot.php", []);
+if (isset($flash)) {
+?>
+        <script defer>
+            $("#flash-title").text('<?=$flash["title"]?>');
+            $("#flash-content").text('<?=$flash["content"]?>');
+            $("#flash-modal").modal();
+        </script>
+<?php
+}
+?>

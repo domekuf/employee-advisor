@@ -3,17 +3,29 @@ require __DIR__ . '/vendor/autoload.php';
 include ('config-server.php');
 define ('RT', '/routes.php');
 use Slim\Views\PhpRenderer;
+use Slim\Flash\Messages;
 
 $routes = new Slim\App();
-$routes->getContainer()['renderer'] = new PhpRenderer("./view");
+$container = $routes->getContainer();
+$container['renderer'] = new PhpRenderer("./view");
+$container['flash'] = function () {
+    return new Messages();
+};
+
+session_start();
 
 function url($str) {
     return RT.$str;
 }
 
 $routes->any('/login', function ($request, $response, $args) {
+    $messages = $this->flash->getMessages();
+    if ($messages) {
+        $args["flash"]["title"] = $messages["error"][0]["title"];
+        $args["flash"]["content"] = $messages["error"][0]["content"];
+    }
     return $this->renderer->render($response, '/login.php', $args);
-});
+})->setName("login");
 
 $routes->any('/review', function ($request, $response, $args) {
     $db = new PDO("sqlite:database/db");
@@ -27,7 +39,11 @@ $routes->any('/review', function ($request, $response, $args) {
         $user_id = $row["id"];
     }
     if (!isset($user_id)) {
-        return $response->withRedirect(url('/login'));
+        $this->flash->addMessage("error", [
+            "title" => "Login failed",
+            "content" => "User $username not found. Psst, try with user@company.com"
+        ]);
+        return $response->withRedirect($this->router->pathFor('login'));
     }
     $args["user_id"] = $user_id;
     $employees = $db->query("select * from employees");
