@@ -5,6 +5,7 @@ define ('RT', '/routes.php');
 use Slim\Views\PhpRenderer;
 use Slim\Flash\Messages;
 
+$db = new PDO("sqlite:".DB);
 $routes = new Slim\App();
 $container = $routes->getContainer();
 $container['renderer'] = new PhpRenderer("./view");
@@ -18,33 +19,62 @@ function url($str) {
     return RT.$str;
 }
 
-$routes->any('/login', function ($request, $response, $args) {
-    $messages = $this->flash->getMessages();
+function flash($t) {
+    $messages = $t->flash->getMessages();
     if ($messages) {
-        $args["flash"]["title"] = $messages["error"][0]["title"];
-        $args["flash"]["content"] = $messages["error"][0]["content"];
+        $flash["title"] = $messages["error"][0]["title"];
+        $flash["content"] = $messages["error"][0]["content"];
     }
+    return $flash;
+}
+
+function cookieGet($request, $cookieName) {
+    $cookieName = urldecode($cookieName);
+    return urldecode($request->getCookieParam($cookieName));
+}
+
+function cookieSet(&$response, $cookieName, $cookieValue) {
+    $expirationMinutes = 10;
+    $expiry = new \DateTimeImmutable('now + '.$expirationMinutes.'minutes');
+    $cookie = urlencode($cookieName).'='.
+    urlencode($cookieValue).'; expires='.$expiry->format(\DateTime::COOKIE).'; Max-Age=' .
+    $expirationMinutes * 60 . '; path=/;';
+    $response = $response->withAddedHeader('Set-Cookie', $cookie);
+}
+
+function isAuthenticated(&$user_id, &$username) {
+    global $db, $container;
+    $request = $container->request;
+    $username = trim($request->getParsedBody()["username"]);
+    if (!isset($username) || $username == "") {
+        $username = cookieGet($request, "username");
+    }
+    $res = $db->query("select * from users where email like '$username'");
+    while ($row = $res->fetch(\PDO::FETCH_ASSOC)){
+        $user_id = $row["id"];
+    }
+    return isset($user_id);
+}
+
+function authenticate(&$response, $username) {
+    cookieSet($response, "username", $username);
+}
+
+$routes->any('/login', function ($request, $response, $args) {
+    $args["flash"] = flash($this);
     return $this->renderer->render($response, '/login.php', $args);
 })->setName("login");
 
 $routes->any('/review', function ($request, $response, $args) {
-    $db = new PDO("sqlite:database/db");
-    $username = trim($request->getParsedBody()["username"]);
-    if (!isset($username) || $username == "") {
-        $username = $request->getCookieParam("username");
-    }
-    $res = $db->query("select * from users where email like '$username'");
-    while ($row = $res->fetch(\PDO::FETCH_ASSOC)){
-        //Assert !isset($user_id)
-        $user_id = $row["id"];
-    }
-    if (!isset($user_id)) {
+    global $db, $container;
+    if (!isAuthenticated($user_id, $username)) {
         $this->flash->addMessage("error", [
             "title" => "Login failed",
             "content" => "User $username not found. Psst, try with user@company.com"
         ]);
         return $response->withRedirect($this->router->pathFor('login'));
     }
+    authenticate($response, $username);
     $args["user_id"] = $user_id;
     $employees = $db->query("select * from employees");
     while ($row = $employees->fetch(\PDO::FETCH_ASSOC)) {
@@ -57,8 +87,15 @@ $routes->any('/review', function ($request, $response, $args) {
 });
 
 $routes->post('/submit', function ($request, $response, $args) {
+    global $db;
+    if (!isAuthenticated($user_id, $username)) {
+        $this->flash->addMessage("error", [
+            "title" => "Authentication failed",
+            "content" => "Please login again."
+        ]);
+        return $response->withRedirect($this->router->pathFor('login'));
+    }
     $b = $request->getParsedBody();
-    $db = new PDO("sqlite:database/db");
     $res = $db->query("select count(*) c from reviews where user = ".$b["user-id"]." and employee = ".$b["employee-id"]);
     while ($row = $res->fetch(\PDO::FETCH_ASSOC)){
         $count_before = $row["c"];
@@ -84,7 +121,7 @@ $routes->post('/submit', function ($request, $response, $args) {
 });
 
 $routes->get('/review-history/{user_id}', function($request, $response, $args) {
-    $db = new PDO("sqlite:database/db");
+    global $db;
     $res = $db->query("select * from reviews where user=".$args["user_id"]);
     while ($row = $res->fetch(\PDO::FETCH_ASSOC)) {
         $args["reviews"][] = [
@@ -96,7 +133,7 @@ $routes->get('/review-history/{user_id}', function($request, $response, $args) {
 });
 
 $routes->get('/employees', function($request, $response, $args) {
-    $db = new PDO("sqlite:database/db");
+    global $db;
     $employees = $db->query("select * from employees");
     while ($row = $employees->fetch(\PDO::FETCH_ASSOC)) {
             $args["employees"][] = [
@@ -109,7 +146,7 @@ $routes->get('/employees', function($request, $response, $args) {
 });
 
 $routes->get('/employees/{employee_id}', function($request, $response, $args) {
-    $db = new PDO("sqlite:database/db");
+    global $db;
     $res = $db->query("select name from employees where id=".$args["employee_id"]);
     while ($row = $res->fetch(\PDO::FETCH_ASSOC)) {
         $args["name"] = $row["name"];
