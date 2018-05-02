@@ -1,2 +1,2 @@
 <?php
-header("location: /routes.php/login");
+header("location: routes.php/login");

@@ -15,5 +15,6 @@ Using a Unix shell
 ```
 cd YOUR_APACHE_ROOT_FOLDER
 git clone https://github.com/domekuf/employee-advisor.git
+composer install
 ```
 Browse on localhost.
