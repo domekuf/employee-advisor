@@ -1,7 +1,7 @@
 <?php
 require __DIR__ . '/vendor/autoload.php';
 include ('config-server.php');
-define ('RT', '/routes.php');
+
 use Slim\Views\PhpRenderer;
 use Slim\Flash\Messages;
 
@@ -14,10 +14,6 @@ $container['flash'] = function () {
 };
 
 session_start();
-
-function url($str) {
-    return RT.$str;
-}
 
 function flash($t) {
     $messages = $t->flash->getMessages();
@@ -60,13 +56,29 @@ function authenticate(&$response, $username) {
     cookieSet($response, "username", $username);
 }
 
+function createNav($t, $user_id) {
+    $pages = [
+        "New review" => ["review", []],
+        "History" => ["review-history", ["user_id" => $user_id]],
+        "Employees" => ["employees", []]
+    ];
+    $nav = [];
+    foreach ($pages as $k=>$p) {
+        $nav[] = [
+            "label"=>$k,
+            "link"=>$t->router->pathFor($p[0], $p[1])
+        ];
+    }
+    return $nav;
+}
+
 $routes->any('/login', function ($request, $response, $args) {
     $args["flash"] = flash($this);
     return $this->renderer->render($response, '/login.php', $args);
 })->setName("login");
 
 $routes->any('/review', function ($request, $response, $args) {
-    global $db, $container;
+    global $db, $container, $nav;
     if (!isAuthenticated($user_id, $username)) {
         $this->flash->addMessage("error", [
             "title" => "Login failed",
@@ -76,6 +88,7 @@ $routes->any('/review', function ($request, $response, $args) {
     }
     authenticate($response, $username);
     $args["user_id"] = $user_id;
+    $args["nav"] = createNav($this, $user_id);
     $employees = $db->query("select * from employees");
     while ($row = $employees->fetch(\PDO::FETCH_ASSOC)) {
             $args["employees"][] = [
@@ -84,10 +97,11 @@ $routes->any('/review', function ($request, $response, $args) {
             ];
     }
     return $this->renderer->render($response, '/review.php', $args);
-});
+})->setName("review");
 
 $routes->post('/submit', function ($request, $response, $args) {
-    global $db;
+    global $db, $nav;
+    $args["nav"] = $nav;
     if (!isAuthenticated($user_id, $username)) {
         $this->flash->addMessage("error", [
             "title" => "Authentication failed",
@@ -95,6 +109,7 @@ $routes->post('/submit', function ($request, $response, $args) {
         ]);
         return $response->withRedirect($this->router->pathFor('login'));
     }
+    $args["nav"] = createNav($this, $user_id);
     $b = $request->getParsedBody();
     $res = $db->query("select count(*) c from reviews where user = ".$b["user-id"]." and employee = ".$b["employee-id"]);
     while ($row = $res->fetch(\PDO::FETCH_ASSOC)){
@@ -118,35 +133,55 @@ $routes->post('/submit', function ($request, $response, $args) {
     } else {
         return $this->renderer->render($response, '/error.php', $args);
     }
-});
+})->setName("submit");;
 
 $routes->get('/review-history/{user_id}', function($request, $response, $args) {
     global $db;
-    $res = $db->query("select * from reviews where user=".$args["user_id"]);
+    $user_id = $args["user_id"];
+    $args["nav"] = createNav($this, $user_id);
+    $res = $db->query("select * from reviews join employees e on (employee=e.id) where user=".$user_id);
     while ($row = $res->fetch(\PDO::FETCH_ASSOC)) {
         $args["reviews"][] = [
+            "name" => $row["name"],
             "content" => urldecode($row["content"]),
             "rate" => $row["rate"]
         ];
     }
     return $this->renderer->render($response, '/review-history.php', $args);
-});
+})->setName("review-history");
 
 $routes->get('/employees', function($request, $response, $args) {
     global $db;
+    if (!isAuthenticated($user_id, $username)) {
+        $this->flash->addMessage("error", [
+            "title" => "Login failed",
+            "content" => "User $username not found. Psst, try with user@company.com"
+        ]);
+        return $response->withRedirect($this->router->pathFor('login'));
+    }
+    authenticate($response, $username);
+    $args["nav"] = createNav($this, $user_id);
     $employees = $db->query("select * from employees");
     while ($row = $employees->fetch(\PDO::FETCH_ASSOC)) {
             $args["employees"][] = [
-                    "link" => url('/employees/'.$row["id"]),
+                    "link" => $this->router->pathFor('employee', ["employee_id" => $row["id"]]),
                     "name" => $row["name"]
             ];
     }
-
     return $this->renderer->render($response, '/employees.php', $args);
-});
+})->setName("employees");
 
 $routes->get('/employees/{employee_id}', function($request, $response, $args) {
     global $db;
+    if (!isAuthenticated($user_id, $username)) {
+        $this->flash->addMessage("error", [
+            "title" => "Login failed",
+            "content" => "User $username not found. Psst, try with user@company.com"
+        ]);
+        return $response->withRedirect($this->router->pathFor('login'));
+    }
+    authenticate($response, $username);
+    $args["nav"] = createNav($this, $user_id);
     $res = $db->query("select name from employees where id=".$args["employee_id"]);
     while ($row = $res->fetch(\PDO::FETCH_ASSOC)) {
         $args["name"] = $row["name"];
@@ -160,6 +195,6 @@ $routes->get('/employees/{employee_id}', function($request, $response, $args) {
         return $this->renderer->render($response, '/employees%{employee_id}.php', $args);
     }
     return $this->renderer->render($response, '/error.php', $args);
-});
+})->setName("employee");
 
 $routes->run();
