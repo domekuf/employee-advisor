@@ -1,4 +1,7 @@
-<?php echo $this->fetch("/head.php", []);?>
+<?php
+echo $this->fetch("/head.php", []);
+echo $this->fetch("/partial/nav.php", ["nav"=>$nav]);
+?>
 
 <h1>Congratulations</h1>
 <p>You've successfully reviewed <?=$name?></p>

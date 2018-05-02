@@ -100,8 +100,7 @@ $routes->any('/review', function ($request, $response, $args) {
 })->setName("review");
 
 $routes->post('/submit', function ($request, $response, $args) {
-    global $db, $nav;
-    $args["nav"] = $nav;
+    global $db;
     if (!isAuthenticated($user_id, $username)) {
         $this->flash->addMessage("error", [
             "title" => "Authentication failed",
@@ -159,7 +158,6 @@ $routes->get('/employees', function($request, $response, $args) {
         ]);
         return $response->withRedirect($this->router->pathFor('login'));
     }
-    authenticate($response, $username);
     $args["nav"] = createNav($this, $user_id);
     $employees = $db->query("select * from employees");
     while ($row = $employees->fetch(\PDO::FETCH_ASSOC)) {
@@ -180,7 +178,6 @@ $routes->get('/employees/{employee_id}', function($request, $response, $args) {
         ]);
         return $response->withRedirect($this->router->pathFor('login'));
     }
-    authenticate($response, $username);
     $args["nav"] = createNav($this, $user_id);
     $res = $db->query("select name from employees where id=".$args["employee_id"]);
     while ($row = $res->fetch(\PDO::FETCH_ASSOC)) {
