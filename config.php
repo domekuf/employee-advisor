@@ -1,5 +1,5 @@
 <?php
-define("RT", "/");
+define("RT", "/employee-advisor/");
 define("BS", RT."vendor/twbs/bootstrap/dist/");
 define("JQ", RT."vendor/components/jquery/");
 define("FA", RT."vendor/components/font-awesome/");
