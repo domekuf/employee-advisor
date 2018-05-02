@@ -1,3 +1,4 @@
+        </main>
         <script src="<?=JQ?>jquery.min.js"></script>
         <script src="<?=BS?>js/bootstrap.bundle.min.js"></script>
         <script src="/js/main.js"></script>
@@ -21,3 +22,14 @@
         </div>
     </div>
 </html>
+<?php
+if (isset($flash)) {
+?>
+        <script defer>
+            $("#flash-title").text('<?=$flash["title"]?>');
+            $("#flash-content").text('<?=$flash["content"]?>');
+            $("#flash-modal").modal();
+        </script>
+<?php
+}
+?>

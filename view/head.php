@@ -25,5 +25,17 @@
         <meta name="msapplication-TileColor" content="#ffffff">
         <link rel="stylesheet" href="<?=BS?>css/bootstrap.min.css">
         <link rel="stylesheet" href="<?=FA?>css/fontawesome-all.min.css">
+<?php
+if (!isset($hide_nav)) {
+?>
+        <link rel="stylesheet" href="<?=RT?>css/nav.css">
+<?php
+} else {
+?>
+        <link rel="stylesheet" href="<?=RT?>css/hide-nav.css">
+<?php
+}
+?>
     </head>
     <body>
+        <main role="main" class="container">

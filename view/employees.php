@@ -1,4 +1,7 @@
-<?php echo $this->fetch("/head.php", []);?>
+<?php
+echo $this->fetch("/head.php");
+echo $this->fetch("/partial/nav.php", ["nav"=>$nav]);
+?>
 
 <h1>Employees</h1>
 <?php foreach ($employees as $e) { ?>

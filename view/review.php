@@ -1,4 +1,7 @@
-<?php echo $this->fetch("/head.php", []);?>
+<?php
+echo $this->fetch("/head.php");
+echo $this->fetch("/partial/nav.php", ["nav"=>$nav]);
+?>
 <link rel="stylesheet" href="/css/review.css">
 <h1>Review an employee</h1>
 <form method="POST" action="submit">
