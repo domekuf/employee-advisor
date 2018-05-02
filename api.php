@@ -2,15 +2,12 @@
 require __DIR__ . '/vendor/autoload.php';
 include ('config.php');
 
+$db = new PDO("sqlite:".DB);
 $api = new Slim\App();
 
-$api->get('/hello/{name}', function ($request, $response, $args) {
-    return $response->getBody()->write("Hello, " . $args['name']);
-});
-
-$api->get("/reviews/{employee}", function ($request, $response, $args) {
-    $db = new PDO("sqlite:database/db");
-    $res = $db->query("select * from reviews where employee = ".$args['employee']);
+$api->get("/reviews/{user_id}", function ($request, $response, $args) {
+    global $db;
+    $res = $db->query("select * from reviews where user = ".$args['user_id']);
     $array = [];
     while ($row = $res->fetch(\PDO::FETCH_ASSOC)){
         $array [] = $row;
@@ -18,19 +15,9 @@ $api->get("/reviews/{employee}", function ($request, $response, $args) {
     return $response->withJson($array);
 });
 
-$api->get("/employees", function ($request, $response, $args) {
-    $db = new PDO("sqlite:database/db");
-    $res = $db->query("select * from employees");
-    $array = [];
-    while ($row = $res->fetch(\PDO::FETCH_ASSOC)){
-        $array [] = $row;
-    }
-    return $response->withJson($array);
-});
-
-$api->get("/users", function ($request, $response, $args) {
-    $db = new PDO("sqlite:database/db");
-    $res = $db->query("select * from users");
+$api->get("/reviews", function ($request, $response, $args) {
+    global $db;
+    $res = $db->query("select * from reviews");
     $array = [];
     while ($row = $res->fetch(\PDO::FETCH_ASSOC)){
         $array [] = $row;
