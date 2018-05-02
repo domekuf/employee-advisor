@@ -1,6 +1,6 @@
 <?php
 require __DIR__ . '/vendor/autoload.php';
-include ('config-server.php');
+include ('config.php');
 
 $api = new Slim\App();
 
