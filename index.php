@@ -1,2 +1,3 @@
 <?php
-header("location: routes.php/login");
+require "config.php";
+header("location: ".APP_ROUTES."/".APP_ENTRY);

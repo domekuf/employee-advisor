@@ -2,7 +2,7 @@
 echo $this->fetch("/head.php");
 echo $this->fetch("/partial/nav.php", ["nav"=>$nav]);
 ?>
-<link rel="stylesheet" href="/css/review.css">
+<link rel="stylesheet" href="<?=RT?>css/review.css">
 <h1>Review an employee</h1>
 <form method="POST" action="submit">
     <input type="hidden" name="user-id" value="<?= $user_id ?>">
@@ -31,6 +31,6 @@ echo $this->fetch("/partial/nav.php", ["nav"=>$nav]);
     </div>
     <button type="submit" class="btn btn-primary">Submit</button>
 </form>
-<script defer src="/js/review.js"></script>
+<script defer src="<?=RT?>js/review.js"></script>
 
 <?php echo $this->fetch("/foot.php", []);?>
